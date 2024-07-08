@@ -1,0 +1,255 @@
+#------------------------- Msc In Statistics AUEB ---------------------------
+#
+# Purpose: 2nd Project in the Course Statistical Quality Control. 
+#
+# This project involves the application of statistical process control (SPC) methods
+# to monitor and improve the manufacturing process of solar panels in a company. 
+# The objective is to detect any assignable shifts in the production process by constructing 
+# various control charts. Specifically, we will use X-bar, S, CUSUM, and EWMA control charts.
+#
+# We will simulate data for this analysis. The assumed parameters are:
+# - The average length of each solar panel is 65 cm.
+# - The standard deviation of the panel lengths is 1 cm.
+# - The daily production amounts to 2000 pieces.
+# - To monitor the quality, 60 samples of 10 solar panels each are drawn.
+#
+# The project will follow these steps:
+# 1. Simulate the initial production data.
+# 2. Construct and interpret X-bar, CUSUM, EWMA, R, and S control charts.
+# 3. Introduce small and large shifts in the process and observe the response of the control charts.
+#
+# 
+# Author: Konstantinos Grammenos
+# 
+# #Date: 09/04/2024
+#
+# Proffesor:S.Psarakis
+
+
+
+library(qcc)
+set.seed(42)  
+
+#mean of the panels
+mean <- 65   
+sd <- 1 
+#mean length of solar pannel after the shift , here we have a small shift
+small_shift_mean <- mean + 0.7  
+#batches is the # of samples
+batches <- 60  
+# number of solar panels per patch that is the n for us
+panels_per_batch <- 10  
+
+#the batches after the shift
+batches_shift <- 15
+
+#simulate normal data 
+solar_panel_normal <- matrix(rnorm(batches * panels_per_batch, mean, sd), ncol = panels_per_batch)
+
+solar_panel_normal
+
+solar_panel_normal_df <- data.frame(solar_panel_normal)
+colnames(solar_panel_normal_df) <- paste("Observations", c(1:10))
+rownames(solar_panel_normal_df) <-paste("Sample",c(1:60))
+
+#---------------------- X BAR CHART ------------------------
+xbar_normal <- qcc(solar_panel_normal_df, type="xbar", plot=TRUE,title = "")
+
+xbar_normal$statistics
+xbar_normal$sizes # 10
+xbar_normal$center 
+xbar_normal$std.dev
+xbar_normal$limits
+x_center <- xbar_normal$center
+x_LCL <- xbar_normal$limits[1] 
+x_UCL <- xbar_normal$limits[2] 
+
+
+#---------------------- CUSUM CONTROL CHART ------------------------
+
+cusum(solar_panel_normal_df, size=10,decision.interval=5,se.shift=1,title = "")
+
+#---------------------- EWMA CONTROL CHART ------------------------
+
+
+ewma_normal <- ewma(solar_panel_normal_df,lambda = 0.1,title = "")
+
+ewma_normal$statistics
+ewma_normal$sizes # 10
+ewma_normal$center 
+ewma_normal$std.dev
+ewma_normal$limits
+
+
+#---------------------- R CHART ------------------------
+
+R_normal<- qcc(solar_panel_normal_df, type="R", plot=TRUE,data.name = "solar panel length")
+R_normal$statistics
+R_normal$sizes # 10
+R_normal$center 
+R_normal$std.dev #
+R_normal$limits #
+
+#---------------------- S CHART ------------------------
+
+S_normal<- qcc(solar_panel_normal_df, type="S", plot=TRUE,title = "")
+S_normal$statistics
+S_normal$sizes # 10
+S_normal$center 
+S_normal$std.dev #
+S_normal$limits
+S_center <- S_normal$center
+S_LCL <- S_normal$limits[1] 
+S_UCL <- S_normal$limits[2] 
+
+
+#------------------------- DATA WITH THE small SHIFT ----------------------------
+
+# Simulating data after shift has happened
+solar_panel_small_shift <- matrix(rnorm(batches_shift * panels_per_batch, small_shift_mean, sd), ncol = panels_per_batch)
+solar_panel_small_shift
+solar_panel_small_shift_df <- data.frame(solar_panel_small_shift)
+colnames(solar_panel_small_shift_df) <- paste("Observations", c(1:10))
+rownames(solar_panel_small_shift_df) <- paste("Sample", c((batches+1):(batches+batches_shift)))
+solar_panel_small_shift_df
+
+
+small_shift_data <- rbind(solar_panel_normal, solar_panel_small_shift)
+
+
+small_shift_data <- data.frame(small_shift_data)
+colnames(small_shift_data) <- paste("Observations", c(1:10))
+rownames(small_shift_data) <-paste("Sample",c(1:75))
+
+
+#------------------------- X BAR CHART WITH THE Small SHIFT ----------------------------
+
+#xbar_small_shift <- qcc(small_shift_data, type = "xbar", plot = TRUE,
+#data.name = "Solar Panel Length - Small Shift",center = x_center, limits = c(x_LCL, x_UCL))
+
+xbar_small_shift <- qcc(solar_panel_normal,newdata = solar_panel_small_shift ,type="xbar",title ="")
+
+xbar_small_shift$statistics
+xbar_small_shift$sizes # 10
+xbar_small_shift$center 
+xbar_small_shift$std.dev 
+xbar_small_shift$limits 
+
+
+#----------------CUSUM CONTROL CHART with small shift--------------------------------
+
+cusum(solar_panel_normal,newdata =solar_panel_small_shift ,size=10,decision.interval=5,se.shift = 1,title = "")
+
+
+#----------------EWMA CONTROL CHART with small shift--------------------------------
+
+ewma(solar_panel_normal,lambda = 0.1,newdata = solar_panel_small_shift,title = "" )
+
+
+
+#------------------------- X BAR CHART WITH THE Big SHIFT ----------------------------
+big_shift_mean <- mean + 2 
+
+
+# Simulating data after shift has happened
+solar_panel_big_shift <- matrix(rnorm(batches_shift * panels_per_batch, big_shift_mean, sd), ncol = panels_per_batch)
+solar_panel_big_shift
+solar_panel_big_shift_df <- data.frame(solar_panel_big_shift)
+colnames(solar_panel_big_shift_df) <- paste("Observations", c(1:10))
+rownames(solar_panel_big_shift_df) <- paste("Sample", c((batches+1):(batches+batches_shift)))
+solar_panel_big_shift_df
+
+
+big_shift_data <- rbind(solar_panel_normal, solar_panel_big_shift)
+
+
+big_shift_data <- data.frame(big_shift_data)
+colnames(big_shift_data) <- paste("Observations", c(1:10))
+rownames(big_shift_data) <-paste("Sample",c(1:75))
+
+xbar_big_shift <- qcc(solar_panel_normal,newdata = solar_panel_big_shift ,type="xbar",title = "")
+
+xbar_big_shift$statistics
+xbar_big_shift$sizes # 10
+xbar_big_shift$center   
+xbar_big_shift$std.dev 
+xbar_big_shift$limits 
+
+
+
+
+#----------------CUSUM CONTROL CHART with big shift--------------------------------
+
+cusum(solar_panel_normal,newdata =solar_panel_big_shift ,size=10,decision.interval=5,se.shift = 1,title = "")
+
+
+
+#----------------EWMA CONTROL CHART with big shift--------------------------------
+
+ewma(solar_panel_normal,lambda = 0.1,newdata = solar_panel_big_shift,title = "" )
+
+
+
+
+#------------------------- S CHART WITH THE SMALL SHIFT ----------------------------
+# Simulating data after shift has happened
+shift_sd <- 1.5
+solar_panel_sd_shift <- matrix(rnorm(batches_shift * panels_per_batch, mean, shift_sd), ncol = panels_per_batch)
+solar_panel_sd_shift
+solar_panel_sd_shift_df <- data.frame(solar_panel_sd_shift)
+colnames(solar_panel_sd_shift_df) <- paste("Observations", c(1:10))
+rownames(solar_panel_sd_shift_df) <- paste("Sample", c((batches+1):(batches+batches_shift)))
+solar_panel_sd_shift_df
+
+
+small_shift_data <- rbind(solar_panel_normal, solar_panel_sd_shift)
+
+
+small_shift_data_sd <- data.frame(small_shift_data)
+colnames(small_shift_data_sd) <- paste("Observations", c(1:10))
+rownames(small_shift_data_sd) <-paste("Sample",c(1:75))
+
+
+S_small_shift <- qcc(solar_panel_normal,newdata = solar_panel_sd_shift ,type="S",title = "")
+
+
+S_small_shift$statistics
+S_small_shift$sizes # 10
+S_small_shift$center 
+S_small_shift$std.dev 
+S_small_shift$limits 
+
+
+shift_sd <- 2
+solar_panel_sd_shift <- matrix(rnorm(batches_shift * panels_per_batch, mean, shift_sd), ncol = panels_per_batch)
+solar_panel_sd_shift
+solar_panel_sd_shift_df <- data.frame(solar_panel_sd_shift)
+colnames(solar_panel_sd_shift_df) <- paste("Observations", c(1:10))
+rownames(solar_panel_sd_shift_df) <- paste("Sample", c((batches+1):(batches+batches_shift)))
+solar_panel_sd_shift_df
+
+
+big_shift_data <- rbind(solar_panel_normal, solar_panel_sd_shift)
+
+
+big_shift_data_sd <- data.frame(big_shift_data)
+colnames(big_shift_data_sd) <- paste("Observations", c(1:10))
+rownames(big_shift_data_sd) <-paste("Sample",c(1:75))
+
+
+
+S_big_shift <- qcc(solar_panel_normal,newdata = solar_panel_sd_shift ,type="S",title = "")
+
+
+
+S_big_shift$statistics
+S_big_shift$sizes # 10
+S_big_shift$center 
+S_big_shift$std.dev 
+S_big_shift$limits 
+
+
+
+
+
+
