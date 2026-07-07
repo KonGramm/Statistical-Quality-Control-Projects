@@ -7,7 +7,7 @@ Each project simulates a production process, introduces a controlled shift (in t
 standard deviation, or another process parameter), and applies standard SPC control
 charts to evaluate how well each chart detects the shift.
 
-## Project 2 — SPC in a Solar Panel Production Process
+## SPC in a Solar Panel Production Process
 
 **Scenario:** A company produces solar panels with a target length of 65 cm
 (σ = 1 cm). Quality is monitored by drawing 60 samples of 10 panels each. The project
